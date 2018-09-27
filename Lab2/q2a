@@ -1,0 +1,141 @@
+
+--------------------------------------------------------------------------------------------------------------
+// GLOBAL VARIABLES
+
+// screen dimension limits
+int xLimit = 177;
+int yLimit = 127;
+
+int velocityX;
+int velocityY;
+
+// Ellipse dimensions
+int width;
+int height;
+
+// set up flags
+bool soundFlag = false;
+
+// Takes into account the width -- if width is 20, then left x-coordinate limit would be 157
+int effectiveLeftXLimit;
+int effectiveBottomYLimit;
+
+--------------------------------------------------------------------------------------------------------------
+// TASKS
+
+task moveEllipse
+{
+
+	// generate random starting ellipse coordinates, ensuring all four dimensions always within 177 x 127 grid
+
+	int currentPositionLeft = (abs(rand())%effectiveLeftXLimit+1);
+	int currentPositionBottom = (abs(rand())%effectiveBottomYLimit+1);
+	int currentPositionRight;
+	int currentPositionTop;
+
+	// generate random velocities vx and vy between -3 and 3
+
+	velocityX = (abs(rand())%6+1) - 3;
+	velocityY = (abs(rand())%6+1) - 3;
+	
+
+	while(true)
+	{
+
+		// update other two coordinates
+
+		currentPositionRight = currentPositionLeft + width;
+		currentPositionTop = currentPositionBottom + height;
+
+		// draw and erase ellipse
+		drawEllipse(currentPositionLeft, currentPositionTop, currentPositionRight, currentPositionBottom);
+
+		// Play sound if we've hit side
+		if(soundFlag)
+		{
+			playSound(soundBlip);
+			soundFlag = false;
+		}
+		sleep(100);
+
+		eraseEllipse(currentPositionLeft, currentPositionTop, currentPositionRight, currentPositionBottom);
+		sleep(100);
+
+		//update primary two coordinates: check 4 conditions: if we've hit right, left, top, bottom boundaries
+
+		// check if updating coordinates will hit right boundary of screen
+
+		if (velocityX > 0)
+		{
+			if(currentPositionLeft + velocityX >= effectiveLeftXLimit)
+			{
+				currentPositionLeft = effectiveLeftXLimit;
+				velocityX *= -1;
+				soundFlag = true;
+			}
+		}
+
+		// check if updating coordinates will hit left boundary of screen
+
+		else if (velocityX < 0)
+		{
+			if(currentPositionLeft + velocityX <= 0)
+			{
+				currentPositionLeft = 0;
+				velocityX *= -1;
+				soundFlag = true;
+			}
+		}
+
+		else
+		{
+			currentPositionLeft += velocityX;
+		}
+
+		// check if updating coordinates will hit top boundary of screen
+
+		if (velocityY > 0)
+		{
+			if(currentPositionBottom + velocityY >= effectiveBottomYLimit)
+			{
+				currentPositionBottom = effectiveBottomYLimit;
+				velocityY *= -1;
+				soundFlag = true;
+			}
+		}
+
+		// check if updating coordinates will hit bottom boundary of screen
+
+		else if (velocityY < 0)
+		{
+			if(currentPositionBottom + velocityY <= 0)
+			{
+				currentPositionBottom = 0;
+				velocityY *= -1;
+				soundFlag = true;
+			}
+		}
+
+
+		else 
+		{
+			currentPositionBottom += velocityY;
+		}
+
+	}
+	
+}
+
+
+task main()
+{
+	width = 20;
+	height = 20;
+
+	// effectiveLeftXLimit is 157, effectiveBottomYLimit is 107
+	effectiveLeftXLimit = xLimit + width;
+	effectiveBottomYLimit = yLimit + height;
+
+	startTask(moveEllipse);
+
+}
