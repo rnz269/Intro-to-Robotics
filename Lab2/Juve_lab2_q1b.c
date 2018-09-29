@@ -15,10 +15,6 @@ task motorBControlTask
      {
        	currentPower_B--;
      }
-     else
-     {
-     		desiredPower_B=(abs(rand())%100+1);
-     }
      setMotorSpeed(motorB, currentPower_B);
      sleep(100);
    }
@@ -35,10 +31,6 @@ task motorCControlTask
      {
        	currentPower_C--;
      }
-     else
-     {
-     		desiredPower_C=(abs(rand())%100+1);
-     }
      setMotorSpeed(motorC, currentPower_C);
      sleep(100);
    }
@@ -50,9 +42,8 @@ task main()
 	desiredPower_B = 67;
 	currentPower_C = 0;
 	desiredPower_C = -80;
-
-   startTask(motorBControlTask);
-   startTask(motorCControlTask);
+  startTask(motorBControlTask);
+  startTask(motorCControlTask);
    while(true)
    {
      displayBigTextLine(3,"MotorB:%d/%d",currentPower_B,desiredPower_B);
