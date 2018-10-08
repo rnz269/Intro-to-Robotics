@@ -13,7 +13,7 @@ void pivot_turn_right(float s, int t){
 	setMotorSpeed(motorC, -s);
 	sleep(t);
 }
-void stopAllMotors()
+void stopMotors()
 {
 	setMotorSpeed(motorB, 0);
 	setMotorSpeed(motorC, 0);
@@ -25,7 +25,7 @@ void turnAtBump(){
 	else{
 		pivot_turn_left(12.5,6000);
 	}
-	stopAllMotors();
+	stopMotors();
 	direction = !direction;
 	resetBumpedValue(S1);
 }
