@@ -3,7 +3,7 @@
 int distanceToObstacle = 0;
 int motorBSpeed = 0;
 int motorCSpeed = 0;
-void stopAllMotors()
+void stopMotors()
 {
 	setMotorSpeed(motorB, 0);
 	setMotorSpeed(motorC, 0);
@@ -38,7 +38,7 @@ while((distanceToObstacle != 30) && (distanceToObstacle <= 60))
 			setMotorSpeed(motorC, motorCSpeed);
 			setMotorSpeed(motorB, motorBSpeed);
 		}
-		stopAllMotors();
+		stopMotors();
 		while( distanceToObstacle < 28)
 		{
 			//Move the robot backward
@@ -47,7 +47,7 @@ while((distanceToObstacle != 30) && (distanceToObstacle <= 60))
 			setMotorSpeed(motorC, motorCSpeed);
 			setMotorSpeed(motorB, motorBSpeed);
 		}
-		stopAllMotors();
+		stopMotors();
 	}
 sleep(30000);
 }
