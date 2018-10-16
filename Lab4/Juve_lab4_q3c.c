@@ -1,57 +1,89 @@
 #pragma config(StandardModel, "EV3_REMBOT")
-#define DATALOG_SERIES_0	0
-#define DATALOG_SERIES_1	1
 
-int gyroRateReading = 0;
-float gyroAvgRate = 0;
-const int bufferSize = 5;
-int gyroBuffer[bufferSize];
-
-void insertGyroBuffer(int x)
-{
-	int i;
-	for (i = 0; i < bufferSize - 1; i++)
-	{
-		gyroBuffer[i]=gyroBuffer[i+1];
-	}
-	gyroBuffer[bufferSize-1]= x;
-}
-
-float getGyroAvgRate()
-{
-	int i;
-	float sum;
-	for (i = 0; i < bufferSize; i++)
-	{
-		sum += gyroBuffer[i];
-	}
-	return (sum/bufferSize);
-}
-
-task gyroSensorTask()
+int initDegreeReading;
+int degreeReading;
+float currentDesiredDegree = 0;
+int currentDesiredSpeed = 0;
+int currentSpeed = 0;
+int tolerance = radiansToDegrees(0.2);
+task gyroDegreeReader()
 {
 	while(true)
+		degreeReading = (getGyroDegrees(S2) - initDegreeReading) * (-1);
+}
+void slewMovement(int desiredSpeed, int speedRatio){
+	if(desiredSpeed>currentSpeed)
+     {
+				currentSpeed++;
+     }
+     else
+     {
+       	currentSpeed--;
+     }
+     setMotorSync(motorB, motorC, speedRatio, currentSpeed);
+     sleep(500);
+}
+void stopMotors()
+{
+	currentSpeed = 0;
+	setMotorSpeed(motorB, 0);
+	setMotorSpeed(motorC, 0);
+}
+void point_Turn_Left(int desiredSpeed, int desiredDegree)
+{
+	repeatUntil(abs(desiredDegree - degreeReading) < tolerance)
 	{
-			gyroRateReading = getGyroRate(S2);
-			insertGyroBuffer(gyroRateReading);
-			gyroAvgRate = getGyroAvgRate();
-			datalogAddValue( DATALOG_SERIES_0, gyroRateReading);
-			datalogAddValue( DATALOG_SERIES_1, gyroAvgRate);
-			sleep(1000);
+		slewMovement(desiredSpeed, -100);
 	}
+	stopMotors();
+}
+void point_Turn_Right(int desiredSpeed, int desiredDegree)
+{
+	repeatUntil(abs(desiredDegree - degreeReading) < tolerance)
+	{
+		slewMovement(desiredSpeed, 100);
+	}
+	stopMotors();
+}
+void point_Turn(int desiredSpeed, int desiredDegree)
+{
+	if( desiredDegree < 0 )
+		point_Turn_Right(desiredSpeed, abs(desiredDegree));
+	else
+		point_Turn_Left(desiredSpeed, abs(desiredDegree));
 }
 task displayTask()
 {
 	while(true)
 	{
-		displayTextLine(1,"Gyro Rate: %d", gyroRateReading);
-		displayTextLine(2,"Gyro Average Rate: %f", gyroAvgRate);
+		displayTextLine(1,"Gyro Degree: %d", degreeReading);
+		displayTextLine(2,"Current Speed: %d", currentSpeed);
+		displayTextLine(3,"Gyro init Reading: %d", initDegreeReading);
+		displayTextLine(4,"Turn speed %d degree %f rad", currentDesiredSpeed, currentDesiredDegree );
 	}
 }
+
 task main()
 {
-	startTask(gyroSensorTask);
+	initDegreeReading = getGyroDegrees(S2);
+	startTask(gyroDegreeReader);
 	startTask(displayTask);
+	currentDesiredDegree = -2*(PI)/3;
+	currentDesiredSpeed = 30;
+	point_Turn(currentDesiredSpeed, (int)radiansToDegrees(currentDesiredDegree));
+	sleep(3000);
+	initDegreeReading = getGyroDegrees(S2);
+	currentDesiredDegree = (PI)/2;
+	point_Turn(currentDesiredSpeed, (int)radiansToDegrees(currentDesiredDegree));
+	sleep(3000);
+	initDegreeReading = getGyroDegrees(S2);
+	currentDesiredDegree = -2*(PI)/3;
+	currentDesiredSpeed = 60;
+	point_Turn(currentDesiredSpeed, (int)radiansToDegrees(currentDesiredDegree));
+	sleep(3000);
+	initDegreeReading = getGyroDegrees(S2);
+	currentDesiredDegree = (PI)/2;
+	point_Turn(currentDesiredSpeed, (int)radiansToDegrees(currentDesiredDegree));
 	while(true)
 	{
 		sleep(5000);
