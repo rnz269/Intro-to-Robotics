@@ -1,38 +1,27 @@
 #pragma config(StandardModel, "EV3_REMBOT")
 
 int threshold = 24;
-const int choosenTurnRatio = 30;
-int currentTurnRatio = choosenTurnRatio;
+float turnRatioConstant = -1.75;
+float currentTurnRatio = turnRatioConstant;
+int currentError;
 int colorRead;
-
-bool onLine = false;
+int speed = 10;
 
 task colorSensorTask()
 {
 	while(true)
 	{
 			colorRead = getColorReflected(S3);
-			if(colorRead < threshold)
-			{
-				onLine = true;
-			}
-			else
-			{
-				onLine = false;
-			}
+			currentError = (colorRead - threshold);
 	}
 }
 
 task followLine()
 {
-	int speed = 10;
 	while(true)
 	{
-		if(onLine)
-			currentTurnRatio=choosenTurnRatio;
-		else
-			currentTurnRatio = -(choosenTurnRatio);
-		setMotorSync(motorB,motorC,currentTurnRatio,speed);
+		currentTurnRatio = turnRatioConstant * currentError;
+		setMotorSync(motorB, motorC, currentTurnRatio, speed);
 	}
 }
 task displayTask()
@@ -41,18 +30,18 @@ task displayTask()
 	{
 		displayTextLine(2,"Color Read: %d", colorRead);
 		displayTextLine(3,"current turn ratio: %d", currentTurnRatio);
+		displayTextLine(4,"current turn error: %d", currentError);
 	}
 }
 
 task main()
 {
-	//desiredSpeed = 25;
+	speed = 20;
 	startTask(colorSensorTask);
 	startTask(followLine);
 	startTask(displayTask);
 	while(true)
 	{
-		//desiredSpeed += 5;
-		sleep(5000);
+		sleep(2000);
 	}
 }
