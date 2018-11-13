@@ -37,7 +37,7 @@ bool bumped = false;
 float degreeReading;
 float degreeReadingTimeOne;
 float degreeReadingTimeTwo;
-const float degreeGapThreshold = 40;
+const float degreeGapThreshold = 70;
 
 
 // FUNCTIONS
