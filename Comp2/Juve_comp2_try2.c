@@ -13,7 +13,7 @@ const int max_Dist = 40;
 const int attack_Dist = 10;
 int distanceToObstacle = 100;
 int colorRead;
-float rateRead;
+
 const int white_color_val = 87;
 const int black_color_val = 15;
 const int colorThreshold = 20;
@@ -21,6 +21,7 @@ const int colorThreshold = 20;
 // Motors
 int squigglyMotionConstant = 10;
 int Attack_Power = 100;
+int wiggleVal = 100;
 
 void stopMotors()
 {
@@ -41,13 +42,6 @@ task RangeSensorTask()
 		distanceToObstacle = getUSDistance(S4);
 }
 
-task gyroRatingReader()
-{
-	resetGyro(S2);
-	while(true)
-		rateRead = getGyroRate(S2);
-}
-
 // *********** State Functions ***********
 
 // At edge detected state
@@ -61,7 +55,7 @@ void back_up()
 // At scanning state
 void scanForOpponent()
 {
-	setMotorSync(motorB,motorC, 100, 50);
+	setMotorSync(motorB,motorC, 100, 40);
 }
 
 // At charging state
@@ -73,27 +67,31 @@ void charge_opponent()
 // At attacking state
 void attack_opponent()
 {
-	setMotorSync(motorB,motorC, 0, Attack_Power);
+	setMotorSync(motorB,motorC, wiggleVal, Attack_Power);
 }
 
 // Attack Power Controller if we decide that increasing power is better than straight
-/*
-task attackPowerController()
+
+task wiggleValController()
 {
 	while(true)
 	{
 		if(current_State==Attacking_State){
-			Attack_Power+=10;
+			wiggleVal=0;
+			sleep(2000);
+			wiggleVal=25;
+			sleep(500);
+			wiggleVal=0;
+			sleep(2000);
+			wiggleVal=-25;
 			sleep(500);
 		}
-		else
-			Attack_Power = 50;
 	}
-}*/
+}
 // Switch direction between right and left
 task squigglyMotionController()
 {
-	squigglyMotionConstant = 10;
+	squigglyMotionConstant = 20;
 	while(true){
 		squigglyMotionConstant*=(-1);
 		sleep(500);
@@ -160,13 +158,12 @@ task main()
 {
 	colorRead = 100;
 	startTask(colorSensorTask);
-	startTask(gyroRatingReader);
 	startTask(RangeSensorTask);
 	startTask(displayTask);
 	startTask(colorStateController);
 	startTask(distanceStateController);
 	startTask(squigglyMotionController);
-	//startTask(attackPowerController);
+	startTask(wiggleValController);
 	startTask(MotionController);
 	while(true){
 		sleep(1000);
